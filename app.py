@@ -6,7 +6,7 @@ import base64
 # Initialisation de Geppetto si ce n'est pas déjà fait  
 if 'geppetto' not in st.session_state:
     api_key_path = os.path.join(os.path.dirname(__file__), 'api_key.txt')
-    st.session_state.geppetto = Geppetto()
+    st.session_state.geppetto = Geppetto("admin-preprompt")
 
 # Chargement de l'image de fond avec gestion d'erreurs  
 try:
