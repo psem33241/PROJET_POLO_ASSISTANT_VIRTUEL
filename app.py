@@ -1,16 +1,17 @@
 import streamlit as st  
 from geppetto import Geppetto  
 import os  
-import base64
+import base64  
+from datetime import datetime
 
-# Initialisation de Geppetto si ce n'est pas déjà fait  
+# Initialisation de Geppetto
 if 'geppetto' not in st.session_state:
     api_key_path = os.path.join(os.path.dirname(__file__), 'api_key.txt')
     st.session_state.geppetto = Geppetto()
     st.session_state.geppetto.preprompt("admin_preprompt")
     #st.session_state.geppetto.preprompt("bienvenue_projet_3")
 
-# Chargement de l'image de fond avec gestion d'erreurs  
+# Chargement de l'image de fond avec gestion d'erreurs
 try:
     image_path = os.path.join(os.path.dirname(__file__), 'background.jpeg')
     with open(image_path, "rb") as f:
@@ -32,7 +33,7 @@ except Exception as e:
 # Titre de l'application  
 st.title("🗨️ Polo - Votre assistant virtuel")
 
-# Description de l'application  
+# Description de l'application
 st.markdown("""
 Bienvenue sur **Polo**!  
 Une chatBox interactive utilisant l'API Gemini de GOOGLE.  
@@ -46,19 +47,56 @@ st.markdown("---")
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-# Entrée utilisateur avec un label stylisé  
-user_input = st.text_input("🗣️ Parlez à Polo", "")
+# Fonction pour ajouter un message à l'historique avec horodatage  
+def add_to_history(user_message, response_message):
+    timestamp = datetime.now().strftime("%H:%M:%S")  # Formatage de l'horodatage
+    st.session_state.history.append(f"Vous : {user_message} <small style='color:grey;'>{timestamp}</small>")
+    st.session_state.history.append(f"Polo : {response_message} <small style='color:grey;'>{timestamp}</small>")
 
-# Bouton d'envoi  
-if st.button("Envoyer", key='send_button'):
-    if user_input:
+# Fonction pour gérer l'envoi de messages
+def send_message():
+    if st.session_state.user_input.strip():  # Validation de l'entrée (non vide)
         with st.spinner('Polo est en train de répondre...'):
-            response = st.session_state.geppetto.talk(user_input)
-            # Ajouter la question et la réponse à l'historique  
-            st.session_state.history.append(f"Vous : {user_input}")
-            st.session_state.history.append(f"Polo : {response}")
+            response = st.session_state.geppetto.talk(st.session_state.user_input.strip())
+            add_to_history(st.session_state.user_input, response)  # Ajout à l'historique
+        st.session_state.user_input = ""  # Réinitialisation du champ
+    else:
+        st.warning("Veuillez entrer un message valide.")
 
-# CSS pour les messages en bulles
+# Fonction pour simuler "Shift + Entrée" comme retour à la ligne
+def handle_input(key):
+    if st.session_state.user_input.endswith("\n"):  # Si l'utilisateur appuie sur Entrée
+        if len(st.session_state.user_input.strip()) > 0:
+            send_message()
+        else:
+            st.session_state.user_input = ""  # Réinitialisation pour Entrée simple
+    elif key == "Shift+Enter":  # Gestion de Shift+Entrée pour retour à la ligne
+        st.session_state.user_input += "\n"
+
+# Bouton pour réinitialiser la discussion AVANT la barre de saisie
+if st.button("Réinitialiser la discussion", key='reset_button'):
+    if st.session_state.history:  # Vérifie si l'historique n'est pas vide  
+        st.session_state.history = []  # Réinitialisation de l'historique  
+        st.success("La discussion a été réinitialisée.")
+    else:
+        st.warning("Aucune discussion à effacer.")
+
+# Barre de saisie utilisateur avec gestion de l'envoi via "Entrée"  
+st.text_area(
+    "🗣️ Parlez à Polo",
+    key="user_input",
+    placeholder="Votre message ici...",
+    on_change=send_message
+)
+
+# Ajout d'instructions pour éviter les confusions avec "Shift + Entrée"  
+st.caption("Appuyez sur Shift + Entrée pour envoyer. Utilisez Entrée pour aller à la ligne.")
+
+# Bouton d'envoi (optionnel, visible mais non obligatoire)  
+if st.button("Envoyer", key='send_button'):
+    send_message()
+
+# CSS pour les messages en bulles  
 st.markdown("""
 <style>
 /* Style des messages utilisateur */
@@ -89,7 +127,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Afficher l'historique des messages en ordre inverse
+# Afficher l'historique des messages en ordre inverse  
 if st.session_state.history:
     st.markdown("### 🗨️ Discussion")
     for message in reversed(st.session_state.history):
