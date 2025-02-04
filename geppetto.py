@@ -6,7 +6,7 @@ import playsound
 import streamlit as st
 
 class Geppetto:
-    def __init__(self, api_key=api_key=st.secrets["API_KEY_VALID"], name_model="gemini-1.5-flash", temperature=1):
+    def __init__(self, api_key=st.secrets["API_KEY_VALID"], name_model="gemini-1.5-flash", temperature=1):
         self.api_key = api_key
         self.model = None  
         self.name_model = name_model  
