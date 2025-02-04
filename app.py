@@ -7,6 +7,7 @@ import base64
 if 'geppetto' not in st.session_state:
     api_key_path = os.path.join(os.path.dirname(__file__), 'api_key.txt')
     st.session_state.geppetto = Geppetto()
+    st.session_state.geppetto.preprompt("Bullshitter")
 
 # Chargement de l'image de fond avec gestion d'erreurs  
 try:
