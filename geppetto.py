@@ -39,9 +39,6 @@ class Geppetto:
         except Exception as e:
             print(f"Une erreur est survenue lors de l'envoi du message: {e}")
             return "Une erreur est survenue."
-    def preprompt(self, cle_dico):
-        self._load_preprompt(cle_dico)
-        self._configure()
 
     def _load_preprompt(self, cle_dico: str) -> str:
         base_dir = os.path.dirname(__file__)
@@ -57,6 +54,10 @@ class Geppetto:
             raise FileNotFoundError(f"Le fichier {file_path} est introuvable.")
         except json.JSONDecodeError:
             raise ValueError("Erreur lors du décodage du fichier JSON.")
+    
+    def preprompt(self, cle_dico):
+        self._load_preprompt(cle_dico)
+        self._configure()
 
     def voice_talk(self, message: str):
         response = self.talk(message)
